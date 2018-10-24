@@ -1,71 +1,77 @@
 pragma solidity ^0.4.7;
 contract Tutoria {
     
-    mapping (address => TutoriaData)  tutoriasdata;
+    mapping (uint256 => TutoriaData)  Tutorias;
     
     
     struct TutoriaData {
         string materia;
         address idProfesor;
         address alumno;
-        bool num_confirmar;
-        bool num_cancelar;
+        bool isConfirmado;
+        bool isCancelado;
         uint fecha;
-        bytes32 hash;
+        uint256 hash;
     }
     
-    function solicitar(string mater, address id_Profesor) public{
-        require(msg.sender != id_Profesor);
-        TutoriaData t = tutoriasdata[msg.sender];
+    function solicitar(string mater, address idProf) public returns (uint256){
+        require(msg.sender != idProf);
+
+        uint256 key = uint256(keccak256(abi.encode(msg.sender, mater,idProf, block.timestamp)));
+
+        TutoriaData t = Tutorias[key];
         t.materia = mater;
-        t.idProfesor = id_Profesor;
+        t.idProfesor = idProf;
         t.alumno = msg.sender;
-        t.num_cancelar = false;
-        t.num_confirmar = false;
+        t.isConfirmado = false;
+        t.isCancelado = false;
         t.fecha = block.timestamp;
-        t.hash = keccak256(t.materia,t.idProfesor,t.alumno,t.num_cancelar,t.num_confirmar,t.fecha);
-    }
-    
-    function getFecha(address key) public view returns (uint) {
-        return tutoriasdata[key].fecha;
+        t.hash = key;
+        return key;
     }
 
     
-    function getMateria(address key) public view returns (string) {
-        return tutoriasdata[key].materia;
+    
+    function getFecha(uint256 key) public view returns (uint) {
+        return Tutorias[key].fecha;
+    }
+
+    function getHash(uint256 key) public view returns (uint256) {
+        return Tutorias[key].hash;
     }
     
-    function getIdProfesor(address key) public view returns (address) {
-        return tutoriasdata[key].idProfesor;
+    function getMateria(uint256 key) public view returns (string) {
+        return Tutorias[key].materia;
     }
     
-    function getAlumno(address key) public view returns (address) {
-        return tutoriasdata[key].alumno;
+    function getIdProfesor(uint256 key) public view returns (address) {
+        return Tutorias[key].idProfesor;
     }
     
-    function confirmar(address key) public returns (bool) {
-        require(tutoriasdata[key].idProfesor == msg.sender);
-        require(tutoriasdata[key].num_confirmar == false);
-        require(tutoriasdata[key].num_cancelar == false);
-        return tutoriasdata[key].num_confirmar = true;
+    function getAlumno(uint256 key) public view returns (address) {
+        return Tutorias[key].alumno;
     }
     
-    function cancelar(address key) public returns (bool) {
-        require(tutoriasdata[key].alumno == msg.sender);
-        require(tutoriasdata[key].num_confirmar == false);
-        require(tutoriasdata[key].num_cancelar == false);
-        return tutoriasdata[key].num_cancelar= true;
+    function confirmar(uint256 key) public returns (bool) {
+        require(Tutorias[key].idProfesor == msg.sender);
+        require(Tutorias[key].isConfirmado == false);
+        require(Tutorias[key].isCancelado == false);
+        return Tutorias[key].isConfirmado = true;
     }
     
-    function estaConfirmado(address key) public view returns (bool){
-        return tutoriasdata[key].num_confirmar;
+    function cancelar(uint256 key) public returns (bool) {
+        require(Tutorias[key].alumno == msg.sender);
+        require(Tutorias[key].isConfirmado == false);
+        require(Tutorias[key].isCancelado == false);
+        return Tutorias[key].isCancelado = true;
     }
     
-    function estaCancelado(address key) public view returns (bool){
-        return tutoriasdata[key].num_cancelar;
+    function estaConfirmado(uint256 key) public view returns (bool){
+        return Tutorias[key].isConfirmado;
     }
     
-    function getHash(address key) public view returns (bytes32) {
-        return tutoriasdata[key].hash;
+    function estaCancelado(uint256 key) public view returns (bool){
+        return Tutorias[key].isCancelado;
     }
+    
 }
